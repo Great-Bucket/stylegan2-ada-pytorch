@@ -8,6 +8,7 @@
 
 import os
 import time
+import datetime
 import copy
 import json
 import pickle
@@ -26,6 +27,12 @@ from metrics import metric_main
 
 #----------------------------------------------------------------------------
 
+def print_current_datetime():
+  now = datetime.datetime.now()
+  print ("\nTime: " + now.strftime("%Y-%m-%d %H:%M:%S"))
+ 
+#----------------------------------------------------------------------------
+   
 def setup_snapshot_image_grid(training_set, random_seed=0):
     rnd = np.random.RandomState(random_seed)
     gw = np.clip(7680 // training_set.image_shape[2], 7, 32)
@@ -134,6 +141,7 @@ def training_loop(
     # Load training set.
     if rank == 0:
         print('Loading training set...')
+        print_current_datetime()
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
@@ -422,6 +430,7 @@ def training_loop(
     # Done.
     if rank == 0:
         print()
+        print_current_datetime()
         print('Exiting...')
 
 #----------------------------------------------------------------------------
