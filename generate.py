@@ -22,7 +22,7 @@ import torch
 
 import legacy
 
-from opensimplex import OpenSimplex
+# from opensimplex import OpenSimplex #removed 16-Dec-23 for testing. Shamrock
 
 # ---------------------------------------------------------------------------
 
