@@ -56,7 +56,7 @@ def circularloop(nf, d, seed, seeds):
         latents_a = rnd.randn(1, 512)
         latents_b = rnd.randn(1, 512)
         latents_c = rnd.randn(1, 512)
-    elif(len(seeds) is not 3):
+    elif(len(seeds) != 3):
         assert('Must choose exactly 3 seeds!')
     else:
         latents_a = np.random.RandomState(int(seeds[0])).randn(1, 512)
