@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -124,6 +124,7 @@ def training_loop(
     resume_pkl              = None,     # Network pickle to resume training from.
     cudnn_benchmark         = True,     # Enable torch.backends.cudnn.benchmark?
     allow_tf32              = False,    # Enable torch.backends.cuda.matmul.allow_tf32 and torch.backends.cudnn.allow_tf32?
+    augment_p_cap           = 0.85,     # Hard ceiling on augmentation probability. ADA paper requires p < 0.8 for non-leaking guarantee.
     abort_fn                = None,     # Callback function for determining whether to abort training. Must return consistent results across ranks.
     progress_fn             = None,     # Callback function for updating training progress. Called for all ranks.
 ):
@@ -253,6 +254,8 @@ def training_loop(
         except ImportError as err:
             print('Skipping tfevents export:', err)
 
+    augment_p_cap_warned = False
+
     # Train.
     if rank == 0:
         print(f'Training for {total_kimg} kimg...')
@@ -326,7 +329,12 @@ def training_loop(
         if (ada_stats is not None) and (batch_idx % ada_interval == 0):
             ada_stats.update()
             adjust = np.sign(ada_stats['Loss/signs/real'] - ada_target) * (batch_size * ada_interval) / (ada_kimg * 1000)
-            augment_pipe.p.copy_((augment_pipe.p + adjust).max(misc.constant(0, device=device)))
+            new_p = (augment_pipe.p + adjust).max(misc.constant(0, device=device))
+            new_p = new_p.min(misc.constant(augment_p_cap, device=device))
+            if float(new_p.cpu()) >= augment_p_cap and not augment_p_cap_warned:
+                print(f'Warning: augment_p capped at {augment_p_cap}. Discriminator may be overfitting \u2014 consider increasing --gamma.')
+                augment_p_cap_warned = True
+            augment_pipe.p.copy_(new_p)
 
         # Perform maintenance tasks once per tick.
         done = (cur_nimg >= total_kimg * 1000)

@@ -57,6 +57,7 @@ def setup_training_loop_kwargs(
     p          = None, # Specify p for 'fixed' (required): <float>
     target     = None, # Override ADA target for 'ada': <float>, default = depends on aug
     augpipe    = None, # Augmentation pipeline: 'blit', 'geom', 'color', 'filter', 'noise', 'cutout', 'bg', 'bgc' (default), ..., 'bgcfnc', 'bgc_rotate90_0', 'bgc_no_rotate'
+    augcap     = None, # Maximum augmentation probability for ADA: <float>, default = 0.85
     initstrength = None,
 
     # Transfer learning.
@@ -300,6 +301,12 @@ def setup_training_loop_kwargs(
         assert isinstance(initstrength, float)
         args.augment_p = initstrength
 
+    if augcap is not None:
+        assert isinstance(augcap, float)
+        if not 0 < augcap <= 1:
+            raise UserError('--augcap must be between 0 (exclusive) and 1 (inclusive)')
+        args.augment_p_cap = augcap
+
     assert augpipe is None or isinstance(augpipe, str)
     if augpipe is None:
         augpipe = 'bgc'
@@ -469,6 +476,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--p', help='Augmentation probability for --aug=fixed', type=float)
 @click.option('--target', help='ADA target value for --aug=ada', type=float)
 @click.option('--augpipe', help='Augmentation pipeline [default: bgc]', type=click.Choice(['blit', 'geom', 'color', 'filter', 'noise', 'cutout', 'bg', 'bgc', 'bgcf', 'bgcfn', 'bgcfnc', 'bgc_rotate90_0', 'bgc_no_rotate']))
+@click.option('--augcap', help='Maximum augmentation probability for ADA [default: 0.85]', type=float, metavar='FLOAT')
 @click.option('--initstrength', help='Override ADA strength at start', type=float)
 
 # Transfer learning.
