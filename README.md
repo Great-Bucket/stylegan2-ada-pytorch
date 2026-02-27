@@ -36,6 +36,7 @@ My fork: 3 July 23 | Original: https://github.com/dvschultz/stylegan2-ada-pytorc
 * **Flesh digressions script** based on Aydao script (ported by [grddavies](https://github.com/grddavies), thanks!)
 * **Blend Two Models at specific resolution layer** Based on [Justin Pinkney’s Tensorflow version](https://github.com/justinpinkney/stylegan2/blob/master/blend_models.py)
 * **Experimental Top-K training function** Improve generator training by only propagating gradients from images the discriminator was most unsure of: [Sinha & Zhao](https://arxiv.org/abs/2002.06224). Use `--topk={float value}` to define the decay rate. Ported from code written by [Hans Brouwer](https://github.com/JCBrouwer) from [SG2-ADA Tensorflow version](https://github.com/dvschultz/stylegan2-ada/issues?q=is%3Apr+author%3AJCBrouwer).
+* **ADA augment_p ceiling** The original ADA heuristic has no upper bound on augmentation probability, which can cause it to exceed 1.0 and make all augmentations deterministic — leaking rotations, color shifts, etc. into generated output. A hard ceiling (default 0.85) is now applied, with a one-time warning when the cap is hit. The value is tuneable via `--augcap={float}`. The 0.85 default provides a small margin above the ADA paper's 0.8 safe threshold ([Karras et al. 2020](https://arxiv.org/abs/2006.06676)).
 
 ## StyleGAN2-ADA &mdash; Official PyTorch implementation
 
