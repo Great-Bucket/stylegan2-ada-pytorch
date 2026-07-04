@@ -1,3 +1,4 @@
 __pycache__/
 .cache/
 my-docs/
+.DS_Store
